@@ -43,7 +43,10 @@ if ( $protection && $protection == 'on' ) {
 			}
 		}
 	}
-
+	
+	// apply filters for 3rd party integration of membership or subscription based feed access
+	$give_access = apply_filters( 'give_access', $give_access, $_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW'] );
+	
 	// Send 401 status and display no access message
 	if ( ! $give_access ) {
 
@@ -274,51 +277,53 @@ if( $stylehseet_url ) {
 		<itunes:explicit><?php echo esc_html( $itunes_explicit ); ?></itunes:explicit>
 		<googleplay:explicit><?php echo esc_html( $googleplay_explicit ); ?></googleplay:explicit>
 		<?php if( $complete ) { ?><itunes:complete><?php echo esc_html( $complete ); ?></itunes:complete><?php }
-if ( $image ) {
-		?><itunes:image href="<?php echo esc_url( $image ); ?>"></itunes:image>
-		<googleplay:image href="<?php echo esc_url( $image ); ?>"></googleplay:image>
-		<image>
-			<url><?php echo esc_url( $image ); ?></url>
-			<title><?php echo esc_html( $title ); ?></title>
-			<link><?php echo esc_url( apply_filters( 'ssp_feed_channel_link_tag', $ss_podcasting->home_url, $podcast_series ) ) ?></link>
-		</image>
-<?php }
-if ( isset( $category1['category'] ) && $category1['category'] ) { ?>
-		<itunes:category text="<?php echo esc_attr( $category1['category'] ); ?>">
-<?php if ( isset( $category1['subcategory'] ) && $category1['subcategory'] ) { ?>
-			<itunes:category text="<?php echo esc_attr( $category1['subcategory'] ); ?>"></itunes:category>
-<?php } ?>
-		</itunes:category>
-<?php } ?>
-<?php if ( isset( $category2['category'] ) && $category2['category'] ) { ?>
-		<itunes:category text="<?php echo esc_attr( $category2['category'] ); ?>">
-<?php if ( isset( $category2['subcategory'] ) && $category2['subcategory'] ) { ?>
-			<itunes:category text="<?php echo esc_attr( $category2['subcategory'] ); ?>"></itunes:category>
-<?php } ?>
-		</itunes:category>
-<?php } ?>
-<?php if ( isset( $category3['category'] ) && $category3['category'] ) { ?>
-		<itunes:category text="<?php echo esc_attr( $category3['category'] ); ?>">
-<?php if ( isset( $category3['subcategory'] ) && $category3['subcategory'] ) { ?>
-			<itunes:category text="<?php echo esc_attr( $category3['subcategory'] ); ?>"></itunes:category>
-<?php } ?>
-		</itunes:category>
-	<?php } ?>
-	<?php if ( $new_feed_url ) { ?>
-		<itunes:new-feed-url><?php echo esc_url( $new_feed_url ); ?></itunes:new-feed-url>
-	<?php }
+
+		if ( $image ) {
+				?><itunes:image href="<?php echo esc_url( $image ); ?>"></itunes:image>
+				<googleplay:image href="<?php echo esc_url( $image ); ?>"></googleplay:image>
+				<image>
+					<url><?php echo esc_url( $image ); ?></url>
+					<title><?php echo esc_html( $title ); ?></title>
+					<link><?php echo esc_url( apply_filters( 'ssp_feed_channel_link_tag', $ss_podcasting->home_url, $podcast_series ) ) ?></link>
+				</image>
+		<?php }
+
+		if ( isset( $category1['category'] ) && $category1['category'] ) { ?>
+			<itunes:category text="<?php echo esc_attr( $category1['category'] ); ?>">
+				<?php if ( isset( $category1['subcategory'] ) && $category1['subcategory'] ) { ?>
+							<itunes:category text="<?php echo esc_attr( $category1['subcategory'] ); ?>"></itunes:category>
+				<?php } ?>
+						</itunes:category>
+				<?php } ?>
+				<?php if ( isset( $category2['category'] ) && $category2['category'] ) { ?>
+						<itunes:category text="<?php echo esc_attr( $category2['category'] ); ?>">
+				<?php if ( isset( $category2['subcategory'] ) && $category2['subcategory'] ) { ?>
+							<itunes:category text="<?php echo esc_attr( $category2['subcategory'] ); ?>"></itunes:category>
+				<?php } ?>
+						</itunes:category>
+				<?php } ?>
+				<?php if ( isset( $category3['category'] ) && $category3['category'] ) { ?>
+						<itunes:category text="<?php echo esc_attr( $category3['category'] ); ?>">
+				<?php if ( isset( $category3['subcategory'] ) && $category3['subcategory'] ) { ?>
+							<itunes:category text="<?php echo esc_attr( $category3['subcategory'] ); ?>"></itunes:category>
+				<?php } ?>
+					</itunes:category>
+				<?php } ?>
+				<?php if ( $new_feed_url ) { ?>
+			<itunes:new-feed-url><?php echo esc_url( $new_feed_url ); ?></itunes:new-feed-url>
+		<?php }
 
 		// Prevent WP core from outputting an <image> element
 		remove_action( 'rss2_head', 'rss2_site_icon' );
-
+		
 		// Add RSS2 headers
 		do_action( 'rss2_head' );
-
+		
 		// Get post IDs of all podcast episodes
 		$num_posts = intval( apply_filters( 'ssp_feed_number_of_posts', get_option( 'posts_per_rss', 10 ) ) );
-
+		
 		$args = ssp_episodes( $num_posts, $podcast_series, true, 'feed' );
-
+		
 		$qry = new WP_Query( $args );
 
 		if ( $qry->have_posts() ) {
@@ -425,31 +430,31 @@ if ( isset( $category1['category'] ) && $category1['category'] ) { ?>
 				$itunes_subtitle = mb_substr( $itunes_subtitle, 0, 254 );
 				$itunes_subtitle = apply_filters( 'ssp_feed_item_itunes_subtitle', $itunes_subtitle, get_the_ID() );
 
-		?>
-		<item>
-			<title><?php esc_html( the_title_rss() ); ?></title>
-			<link><?php esc_url( the_permalink_rss() ); ?></link>
-			<pubDate><?php echo esc_html( mysql2date( 'D, d M Y H:i:s +0000', get_post_time( 'Y-m-d H:i:s', true ), false ) ); ?></pubDate>
-			<dc:creator><?php echo $author; ?></dc:creator>
-			<guid isPermaLink="false"><?php esc_html( the_guid() ); ?></guid>
-			<description><![CDATA[<?php echo $description; ?>]]></description>
-			<itunes:subtitle><![CDATA[<?php echo $itunes_subtitle; ?>]]></itunes:subtitle>
-			<content:encoded><![CDATA[<?php echo $content; ?>]]></content:encoded>
-			<itunes:summary><![CDATA[<?php echo $itunes_summary; ?>]]></itunes:summary>
-			<googleplay:description><![CDATA[<?php echo $gp_description; ?>]]></googleplay:description>
-<?php if ( $episode_image ) { ?>
-			<itunes:image href="<?php echo esc_url( $episode_image ); ?>"></itunes:image>
-			<googleplay:image href="<?php echo esc_url( $episode_image ); ?>"></googleplay:image>
-<?php } ?>
-			<enclosure url="<?php echo esc_url( $enclosure ); ?>" length="<?php echo esc_attr( $size ); ?>" type="<?php echo esc_attr( $mime_type ); ?>"></enclosure>
-			<itunes:explicit><?php echo esc_html( $itunes_explicit_flag ); ?></itunes:explicit>
-			<googleplay:explicit><?php echo esc_html( $googleplay_explicit_flag ); ?></googleplay:explicit>
-			<itunes:block><?php echo esc_html( $block_flag ); ?></itunes:block>
-			<googleplay:block><?php echo esc_html( $block_flag ); ?></googleplay:block>
-			<itunes:duration><?php echo esc_html( $duration ); ?></itunes:duration>
-			<itunes:author><?php echo $author; ?></itunes:author>
-		</item>
-<?php }
-} ?>
+				?>
+				<item>
+					<title><?php esc_html( the_title_rss() ); ?></title>
+					<link><?php esc_url( the_permalink_rss() ); ?></link>
+					<pubDate><?php echo esc_html( mysql2date( 'D, d M Y H:i:s +0000', get_post_time( 'Y-m-d H:i:s', true ), false ) ); ?></pubDate>
+					<dc:creator><?php echo $author; ?></dc:creator>
+					<guid isPermaLink="false"><?php esc_html( the_guid() ); ?></guid>
+					<description><![CDATA[<?php echo $description; ?>]]></description>
+					<itunes:subtitle><![CDATA[<?php echo $itunes_subtitle; ?>]]></itunes:subtitle>
+					<content:encoded><![CDATA[<?php echo $content; ?>]]></content:encoded>
+					<itunes:summary><![CDATA[<?php echo $itunes_summary; ?>]]></itunes:summary>
+					<googleplay:description><![CDATA[<?php echo $gp_description; ?>]]></googleplay:description>
+		<?php if ( $episode_image ) { ?>
+					<itunes:image href="<?php echo esc_url( $episode_image ); ?>"></itunes:image>
+					<googleplay:image href="<?php echo esc_url( $episode_image ); ?>"></googleplay:image>
+		<?php } ?>
+					<enclosure url="<?php echo esc_url( $enclosure ); ?>" length="<?php echo esc_attr( $size ); ?>" type="<?php echo esc_attr( $mime_type ); ?>"></enclosure>
+					<itunes:explicit><?php echo esc_html( $itunes_explicit_flag ); ?></itunes:explicit>
+					<googleplay:explicit><?php echo esc_html( $googleplay_explicit_flag ); ?></googleplay:explicit>
+					<itunes:block><?php echo esc_html( $block_flag ); ?></itunes:block>
+					<googleplay:block><?php echo esc_html( $block_flag ); ?></googleplay:block>
+					<itunes:duration><?php echo esc_html( $duration ); ?></itunes:duration>
+					<itunes:author><?php echo $author; ?></itunes:author>
+				</item>
+		<?php }
+		} ?>
 	</channel>
 </rss>
